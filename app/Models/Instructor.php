@@ -35,4 +35,10 @@ class Instructor extends Model
     {
         return $this->hasMany(KarateClass::class);
     }
+
+    // New relationships
+    public function sessions()
+    {
+        return $this->hasMany(ClassSession::class);
+    }
 }

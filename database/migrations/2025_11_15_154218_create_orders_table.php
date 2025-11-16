@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('orders', function (Blueprint $table) {
+            $table->id();
+            $table->string('order_code')->unique();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('registration_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('class_id')->nullable()->constrained('classes')->onDelete('set null');
+            $table->decimal('total_amount', 10, 2);
+            $table->string('status')->default('pending'); // pending, approved, paid, completed, cancelled
+            $table->text('admin_note')->nullable();
+            $table->date('payment_due_date')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('orders');
+    }
+};

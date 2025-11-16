@@ -34,6 +34,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Student Dashboard
+    Route::prefix('student')->name('student.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/classes', [\App\Http\Controllers\Student\DashboardController::class, 'classes'])->name('classes');
+        Route::get('/classes/{class}/lessons', [\App\Http\Controllers\Student\LessonController::class, 'index'])->name('classes.lessons');
+        Route::get('/lessons/{lesson}', [\App\Http\Controllers\Student\LessonController::class, 'show'])->name('lessons.show');
+        Route::post('/lessons/{lesson}/complete', [\App\Http\Controllers\Student\LessonController::class, 'complete'])->name('lessons.complete');
+        Route::get('/progress', [\App\Http\Controllers\Student\DashboardController::class, 'progress'])->name('progress');
+    });
+    
+    // Payment routes
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/orders/{order}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('show');
+        Route::post('/orders/{order}/pay', [\App\Http\Controllers\PaymentController::class, 'pay'])->name('pay');
+        Route::post('/upload-proof', [\App\Http\Controllers\PaymentController::class, 'uploadProof'])->name('upload-proof');
+    });
+    
+    // Testimonials
+    Route::post('/testimonials', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
 });
 
 // Xóa route trùng lặp này
@@ -65,6 +85,36 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Instructors management
     Route::resource('instructors', InstructorAdminController::class);
+    
+    // Orders management
+    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
+    Route::post('orders/{order}/approve', [\App\Http\Controllers\Admin\OrderController::class, 'approve'])->name('orders.approve');
+    Route::post('orders/{order}/reject', [\App\Http\Controllers\Admin\OrderController::class, 'reject'])->name('orders.reject');
+    
+    // Payments management
+    Route::resource('payments', \App\Http\Controllers\Admin\PaymentController::class);
+    Route::post('payments/{payment}/confirm', [\App\Http\Controllers\Admin\PaymentController::class, 'confirm'])->name('payments.confirm');
+    
+    // Enrollments management
+    Route::resource('enrollments', \App\Http\Controllers\Admin\EnrollmentController::class);
+    Route::post('enrollments/{enrollment}/approve', [\App\Http\Controllers\Admin\EnrollmentController::class, 'approve'])->name('enrollments.approve');
+    Route::post('enrollments/{enrollment}/cancel', [\App\Http\Controllers\Admin\EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
+    
+    // Lessons management
+    Route::resource('lessons', \App\Http\Controllers\Admin\LessonController::class);
+    Route::post('lessons/{lesson}/publish', [\App\Http\Controllers\Admin\LessonController::class, 'publish'])->name('lessons.publish');
+    
+    // Class Sessions management
+    Route::resource('sessions', \App\Http\Controllers\Admin\ClassSessionController::class);
+    
+    // Attendance management
+    Route::resource('attendances', \App\Http\Controllers\Admin\AttendanceController::class);
+    Route::post('attendances/bulk', [\App\Http\Controllers\Admin\AttendanceController::class, 'bulkCheck'])->name('attendances.bulk');
+    
+    // Testimonials management
+    Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);
+    Route::post('testimonials/{testimonial}/approve', [\App\Http\Controllers\Admin\TestimonialController::class, 'approve'])->name('testimonials.approve');
+    Route::post('testimonials/{testimonial}/reject', [\App\Http\Controllers\Admin\TestimonialController::class, 'reject'])->name('testimonials.reject');
 });
 
 

@@ -123,4 +123,20 @@ class Registration extends Model
 
         return $statuses[$this->status] ?? $this->status;
     }
+
+    // New relationships
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function karateClass()
+    {
+        return $this->belongsTo(KarateClass::class, 'class_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }
