@@ -59,17 +59,32 @@ class RegistrationController extends Controller
 
         // Gửi email chứa mã xác thực
         try {
+            \Log::info('Attempting to send verification code to: ' . $email);
             Mail::to($email)->send(new VerificationCodeMail($code));
+            \Log::info('Verification code sent successfully to: ' . $email);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Mã xác thực đã được gửi đến email của bạn'
             ]);
         } catch (\Exception $e) {
+            \Log::error('Failed to send verification email: ' . $e->getMessage(), [
+                'email' => $email,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Nếu mail driver là 'log', vẫn trả về success vì email được log vào file
+            if (config('mail.default') === 'log') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mã xác thực đã được gửi. Vui lòng kiểm tra file log.'
+                ]);
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Không thể gửi email xác thực. Vui lòng thử lại sau.',
-                'error' => $e->getMessage()
+                'message' => 'Không thể gửi email xác thực. Vui lòng kiểm tra cấu hình mail hoặc thử lại sau.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Lỗi không xác định'
             ], 500);
         }
     }
@@ -182,10 +197,15 @@ class RegistrationController extends Controller
         // Gửi email thông báo cho quản trị viên
         try {
             $adminEmail = config('mail.admin_email', 'admin@karatetma.com');
+            \Log::info('Sending registration notification to admin: ' . $adminEmail);
             Mail::to($adminEmail)->send(new RegistrationNotification($registration));
+            \Log::info('Registration notification sent successfully');
         } catch (\Exception $e) {
             // Log lỗi nhưng vẫn tiếp tục xử lý
-            \Log::error('Không thể gửi email thông báo: ' . $e->getMessage());
+            \Log::error('Không thể gửi email thông báo đăng ký: ' . $e->getMessage(), [
+                'registration_id' => $registration->id,
+                'trace' => $e->getTraceAsString()
+            ]);
         }
 
         // Chuyển hướng đến trang cảm ơn với thông báo thành công

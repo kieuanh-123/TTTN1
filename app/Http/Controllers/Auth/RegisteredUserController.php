@@ -35,10 +35,14 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Lấy role_id cho student (role_id = 2)
+        $studentRole = \App\Models\Role::where('name', 'user')->first();
+        
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role_id' => $studentRole ? $studentRole->id : 2, // Mặc định là 2 nếu không tìm thấy role
         ]);
 
         event(new Registered($user));

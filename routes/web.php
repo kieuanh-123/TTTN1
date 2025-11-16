@@ -32,17 +32,21 @@ Route::get('/dashboard', function () {
     if ($user->isAdmin()) {
         return redirect()->route('admin.dashboard');
     } else {
+        // Student cần verify email trước khi vào dashboard
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
         return redirect()->route('student.dashboard');
     }
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware('auth')->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware( 'auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Student Dashboard
-    Route::prefix('student')->name('student.')->group(function () {
+    // Student Dashboard - chỉ student mới truy cập được
+    Route::middleware(['student'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/classes', [\App\Http\Controllers\Student\DashboardController::class, 'classes'])->name('classes');
         Route::get('/classes/{class}/lessons', [\App\Http\Controllers\Student\LessonController::class, 'index'])->name('classes.lessons');
@@ -51,16 +55,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/progress', [\App\Http\Controllers\Student\DashboardController::class, 'progress'])->name('progress');
     });
     
-    // Payment routes
-    Route::prefix('payments')->name('payments.')->group(function () {
+    // Payment routes - chỉ student mới truy cập được
+    Route::middleware(['student'])->prefix('payments')->name('payments.')->group(function () {
         Route::get('/orders/{order}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('show');
         Route::post('/orders/{order}/pay', [\App\Http\Controllers\PaymentController::class, 'pay'])->name('pay');
         Route::get('/upload-proof/{payment}', [\App\Http\Controllers\PaymentController::class, 'showUploadForm'])->name('upload-proof');
         Route::post('/upload-proof/{payment}', [\App\Http\Controllers\PaymentController::class, 'uploadProof'])->name('upload-proof.post');
     });
     
-    // Testimonials
-    Route::post('/testimonials', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
+    // Testimonials - chỉ student mới truy cập được
+    Route::middleware(['student'])->post('/testimonials', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
 });
 
 require __DIR__.'/auth.php';

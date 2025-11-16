@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class StudentMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -18,9 +18,9 @@ class AdminMiddleware
 
         $user = Auth::user();
 
-        // Kiểm tra role_id có tồn tại và là admin (role_id = 1)
-        // Sử dụng loose comparison để xử lý cả string và integer
-        if (!$user->role_id || (int)$user->role_id !== 1) {
+        // Chỉ cho phép student (role_id = 2) truy cập
+        // Sử dụng strict comparison để đảm bảo chính xác
+        if (!$user->role_id || (int)$user->role_id !== 2) {
             return redirect()->route('home')->with('error', 'Bạn không có quyền truy cập trang này.');
         }
 

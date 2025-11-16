@@ -62,5 +62,6 @@ class Kernel extends HttpKernel
 
         // Thêm middleware admin của bạn ở đây:
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'student' => \App\Http\Middleware\StudentMiddleware::class,
     ];
 }
