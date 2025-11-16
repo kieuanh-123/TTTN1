@@ -41,8 +41,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Thử đăng nhập
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
+
+            // Kiểm tra xem user có tồn tại không và có đăng ký qua social không
+            $user = \App\Models\User::where('email', $this->string('email'))->first();
+            
+            if ($user && ($user->google_id || $user->facebook_id)) {
+                // User có social login, gợi ý đăng nhập bằng social
+                $socialType = $user->google_id ? 'Google' : 'Facebook';
+                throw ValidationException::withMessages([
+                    'email' => 'Thông tin đăng nhập không chính xác. Tài khoản này có thể đăng nhập bằng ' . $socialType . '.',
+                ]);
+            }
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),

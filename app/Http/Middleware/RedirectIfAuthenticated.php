@@ -21,8 +21,14 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                // Nếu đã đăng nhập, redirect về dashboard
-                return redirect()->route('dashboard');
+                $user = Auth::guard($guard)->user();
+                
+                // Điều hướng theo role
+                if ($user->isAdmin()) {
+                    return redirect()->route('admin.dashboard');
+                } else {
+                    return redirect()->route('student.dashboard');
+                }
             }
         }
 

@@ -30,19 +30,46 @@ class GoogleController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            $user = User::updateOrCreate([
-                'google_id' => $googleUser->id,
-            ], [
-                'name' => $googleUser->name,
-                'email' => $googleUser->email,
-                'password' => bcrypt(Str::random(16)), // Tạo mật khẩu ngẫu nhiên
-            ]);
+            // Lấy role_id cho student (role_id = 2)
+            $studentRole = \App\Models\Role::where('name', 'user')->first();
+            $roleId = $studentRole ? $studentRole->id : 2;
+
+            // Tìm user theo email hoặc google_id
+            $user = User::where('email', $googleUser->email)
+                ->orWhere('google_id', $googleUser->id)
+                ->first();
+
+            if ($user) {
+                // User đã tồn tại, cập nhật thông tin
+                $user->update([
+                    'name' => $googleUser->name,
+                    'google_id' => $googleUser->id,
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                    'role_id' => $user->role_id ?? $roleId, // Giữ role_id cũ nếu có, nếu không thì gán student
+                ]);
+            } else {
+                // Tạo user mới
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'google_id' => $googleUser->id,
+                    'password' => bcrypt(Str::random(16)), // Tạo mật khẩu ngẫu nhiên
+                    'role_id' => $roleId, // Gán role student
+                    'email_verified_at' => now(), // Tự động verify email khi đăng ký qua Google
+                ]);
+            }
 
             Auth::login($user);
 
-            return redirect('/home')->with('success', 'Đăng nhập thành công!');
+            // Điều hướng theo role
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập thành công!');
+            } else {
+                return redirect()->route('student.dashboard')->with('success', 'Đăng nhập thành công!');
+            }
 
         } catch (\Exception $e) {
+            \Log::error('Google login error: ' . $e->getMessage());
             return redirect('/login')->with('error', 'Đăng nhập Google thất bại: ' . $e->getMessage());
         }
     }

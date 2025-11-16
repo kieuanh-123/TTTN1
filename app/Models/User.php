@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role_id',
         'google_id',
+        'facebook_id',
     ];
 
     /**
@@ -53,7 +54,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin()
     {
         // Sử dụng role_id để xác định admin
-        return $this->role_id === 1;
+        // Xử lý cả string và integer để đảm bảo chính xác
+        return $this->role_id && (int)$this->role_id === 1;
     }
 
     public function twoFactorCode()

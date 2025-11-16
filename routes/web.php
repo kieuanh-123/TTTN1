@@ -25,6 +25,7 @@ Route::get('/news', [NewsController::class, 'index'])->name('news');
 Route::get('/news/{id}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/certificate', [CertificateController::class, 'index'])->name('certificate');
 
+// Route dashboard chung - điều hướng theo role
 Route::get('/dashboard', function () {
     $user = Auth::user();
     
@@ -71,7 +72,7 @@ require __DIR__.'/auth.php';
 
 // Admin routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     
     // User management
     Route::resource('users', UserController::class);
