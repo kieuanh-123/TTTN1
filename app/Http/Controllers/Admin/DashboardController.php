@@ -16,7 +16,7 @@ class DashboardController extends Controller
         // Các thống kê cơ bản cho dashboard
         // Trong thực tế, bạn sẽ lấy dữ liệu từ database
         // Hiện tại chúng ta sẽ return view không có dữ liệu
-        
+
         return view('admin.dashboard');
     }
 }
