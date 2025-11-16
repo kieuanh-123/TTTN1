@@ -4,62 +4,103 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Testimonial;
 
 class TestimonialController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of testimonials
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Testimonial::with(['user', 'karateClass']);
+        
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by class
+        if ($request->has('class_id') && $request->class_id) {
+            $query->where('class_id', $request->class_id);
+        }
+        
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%")
+                  ->orWhereHas('karateClass', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        $testimonials = $query->orderBy('created_at', 'desc')->paginate(20);
+        
+        return view('admin.testimonials.index', compact('testimonials'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display the specified testimonial
      */
-    public function create()
+    public function show(Testimonial $testimonial)
     {
-        //
+        $testimonial->load(['user', 'karateClass']);
+        return view('admin.testimonials.show', compact('testimonial'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Approve a testimonial
      */
-    public function store(Request $request)
+    public function approve(Request $request, Testimonial $testimonial)
     {
-        //
+        if ($testimonial->status === 'approved') {
+            return redirect()->back()
+                ->with('error', 'Đánh giá này đã được phê duyệt rồi.');
+        }
+        
+        $testimonial->update([
+            'status' => 'approved',
+            'admin_note' => $request->admin_note ?? null,
+        ]);
+        
+        return redirect()->back()
+            ->with('success', 'Đánh giá đã được phê duyệt và sẽ hiển thị trên website.');
     }
 
     /**
-     * Display the specified resource.
+     * Reject a testimonial
      */
-    public function show(string $id)
+    public function reject(Request $request, Testimonial $testimonial)
     {
-        //
+        if ($testimonial->status === 'rejected') {
+            return redirect()->back()
+                ->with('error', 'Đánh giá này đã bị từ chối rồi.');
+        }
+        
+        $request->validate([
+            'admin_note' => 'required|string|min:10',
+        ]);
+        
+        $testimonial->update([
+            'status' => 'rejected',
+            'admin_note' => $request->admin_note,
+        ]);
+        
+        return redirect()->back()
+            ->with('success', 'Đánh giá đã bị từ chối.');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Remove the specified testimonial
      */
-    public function edit(string $id)
+    public function destroy(Testimonial $testimonial)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $testimonial->delete();
+        
+        return redirect()->route('admin.testimonials.index')
+            ->with('success', 'Đánh giá đã được xóa.');
     }
 }

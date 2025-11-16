@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Thêm các route còn thiếu
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/classes', [ClassController::class, 'index'])->name('classes');
 Route::get('/instructors', [InstructorController::class, 'index'])->name('instructors');
@@ -27,7 +26,14 @@ Route::get('/news/{id}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/certificate', [CertificateController::class, 'index'])->name('certificate');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $user = Auth::user();
+    
+    // Redirect based on user role
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    } else {
+        return redirect()->route('student.dashboard');
+    }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -49,23 +55,15 @@ Route::middleware('auth')->group(function () {
     Route::prefix('payments')->name('payments.')->group(function () {
         Route::get('/orders/{order}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('show');
         Route::post('/orders/{order}/pay', [\App\Http\Controllers\PaymentController::class, 'pay'])->name('pay');
-        Route::post('/upload-proof', [\App\Http\Controllers\PaymentController::class, 'uploadProof'])->name('upload-proof');
+        Route::get('/upload-proof/{payment}', [\App\Http\Controllers\PaymentController::class, 'showUploadForm'])->name('upload-proof');
+        Route::post('/upload-proof/{payment}', [\App\Http\Controllers\PaymentController::class, 'uploadProof'])->name('upload-proof.post');
     });
     
     // Testimonials
     Route::post('/testimonials', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
 });
 
-// Xóa route trùng lặp này
-// Route::get('/admin', function () {
-//     return view('admin.dashboard'); 
-// });
-
 require __DIR__.'/auth.php';
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Admin routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -109,40 +107,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Attendance management
     Route::resource('attendances', \App\Http\Controllers\Admin\AttendanceController::class);
-    Route::post('attendances/bulk', [\App\Http\Controllers\Admin\AttendanceController::class, 'bulkCheck'])->name('attendances.bulk');
+    Route::get('sessions/{session}/attendances', [\App\Http\Controllers\Admin\AttendanceController::class, 'show'])->name('attendances.show-session');
+    Route::post('sessions/{session}/attendances/bulk', [\App\Http\Controllers\Admin\AttendanceController::class, 'bulkCheck'])->name('attendances.bulk');
     
     // Testimonials management
     Route::resource('testimonials', \App\Http\Controllers\Admin\TestimonialController::class);
     Route::post('testimonials/{testimonial}/approve', [\App\Http\Controllers\Admin\TestimonialController::class, 'approve'])->name('testimonials.approve');
     Route::post('testimonials/{testimonial}/reject', [\App\Http\Controllers\Admin\TestimonialController::class, 'reject'])->name('testimonials.reject');
 });
-
-
-Route::get('/add-user-to-sheet', function () {
-    $client = new \Google_Client();
-    $client->setAuthConfig(storage_path('app/google/google-sheets-credentials.json'));
-    $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
-
-    $service = new \Google_Service_Sheets($client);
-
-    $spreadsheetId = env('GOOGLE_SHEET_ID'); // Sheet ID
-    $range = 'Sheet1!A1'; // Sheet name và ô bắt đầu ghi
-    $values = [
-        ["Kiều Anh Thiên", "thien@example.com", now()->toDateTimeString()]
-    ];
-    $body = new \Google_Service_Sheets_ValueRange([
-        'values' => $values
-    ]);
-
-    $params = [
-        'valueInputOption' => 'RAW'
-    ];
-
-    $result = $service->spreadsheets_values->append($spreadsheetId, $range, $body, $params);
-
-    return 'Dữ liệu đã ghi thành công. Số ô ghi: ' . $result->getUpdates()->getUpdatedCells();
-});
-
 
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\FacebookController;
@@ -154,13 +126,8 @@ Route::get('callback-google', [GoogleController::class, 'callback'])->name('call
 Route::get('auth/facebook', [FacebookController::class, 'redirectToFacebook'])->name('auth-facebook');
 Route::get('auth/facebook/callback', [FacebookController::class, 'redirectToFacebookCallback']);
 
-//dang ky nhan tu van or lop hoc
-
 use App\Http\Controllers\RegistrationController;
-Route::post('/register', [RegistrationController::class, 'submit'])->name('registration.submit');
 
-
-// Route cho trang đăng ký
 Route::get('/dang-ky', [RegistrationController::class, 'showForm'])->name('registration.form');
 Route::post('/dang-ky/gui-ma-xac-thuc', [RegistrationController::class, 'sendVerificationCode'])->name('registration.send-code');
 Route::post('/dang-ky/xac-thuc-ma', [RegistrationController::class, 'verifyCode'])->name('registration.verify-code');

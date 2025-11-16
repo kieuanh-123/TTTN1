@@ -47,6 +47,24 @@ return [
             'report' => false,
         ],
 
+        'videos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/videos'),
+            'url' => env('APP_URL').'/storage/videos',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'pdfs' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/pdfs'),
+            'url' => env('APP_URL').'/storage/pdfs',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

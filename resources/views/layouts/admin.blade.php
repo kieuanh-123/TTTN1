@@ -48,6 +48,41 @@
                         <i class="fas fa-user-tie"></i> Quản Lý Giảng Viên
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-shopping-cart"></i> Quản Lý Đơn Hàng
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.payments.index') }}" class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-money-bill-wave"></i> Quản Lý Thanh Toán
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.enrollments.index') }}" class="nav-link {{ request()->routeIs('admin.enrollments.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-user-check"></i> Quản Lý Đăng Ký
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.lessons.index') }}" class="nav-link {{ request()->routeIs('admin.lessons.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-book"></i> Quản Lý Bài Học
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.sessions.index') }}" class="nav-link {{ request()->routeIs('admin.sessions.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-calendar-alt"></i> Quản Lý Buổi Học
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.attendances.index') }}" class="nav-link {{ request()->routeIs('admin.attendances.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-clipboard-check"></i> Điểm Danh
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.testimonials.index') }}" class="nav-link {{ request()->routeIs('admin.testimonials.*') ? 'active' : '' }} text-white">
+                        <i class="fas fa-star"></i> Đánh Giá
+                    </a>
+                </li>
             </ul>
             <hr>
             <div class="dropdown">
