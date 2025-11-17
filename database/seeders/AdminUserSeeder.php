@@ -11,12 +11,12 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminRole = Role::where('name', 'admin')->first();
-        
-        if (!$adminRole) {
-            $adminRole = Role::create(['name' => 'admin']);
-        }
-        
+        // Tạo hoặc lấy role admin
+        $adminRole = Role::firstOrCreate(
+            ['name' => 'admin'],
+        );
+
+        // Tạo hoặc lấy admin user
         $admin = User::firstOrCreate(
             ['email' => 'admin@tma.com'],
             [
@@ -26,17 +26,13 @@ class AdminUserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        
-        // Đảm bảo admin luôn có role_id và email_verified_at đúng
-        $admin->update([
-            'role_id' => $adminRole->id,
-            'email_verified_at' => $admin->email_verified_at ?? now(),
-        ]);
-        
-        // Reset password về admin123 nếu cần (để test)
-        // Uncomment dòng dưới nếu muốn reset password mỗi lần seed
-        // $admin->update(['password' => Hash::make('admin123')]);
-        
+
+        // Đảm bảo role_id đúng theo role name
+        if ($admin->role_id !== $adminRole->id) {
+            $admin->update(['role_id' => $adminRole->id]);
+        }
+
+        // Log kết quả
         if ($admin->wasRecentlyCreated) {
             $this->command->info('Admin user created successfully!');
             $this->command->info('Email: admin@tma.com');
@@ -44,10 +40,8 @@ class AdminUserSeeder extends Seeder
         } else {
             $this->command->info('Admin user already exists.');
             $this->command->info('Email: admin@tma.com');
-            $this->command->info('Role ID: ' . $admin->role_id);
+            $this->command->info('Role: ' . ($admin->role->name ?? 'N/A'));
             $this->command->info('Email Verified: ' . ($admin->email_verified_at ? 'Yes' : 'No'));
         }
     }
 }
-
-

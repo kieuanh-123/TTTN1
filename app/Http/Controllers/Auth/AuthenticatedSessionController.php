@@ -35,6 +35,7 @@ class AuthenticatedSessionController extends Controller
             'user_id' => $user->id,
             'email' => $user->email,
             'role_id' => $user->role_id,
+            'role_name' => $user->role->name ?? null,
             'isAdmin()' => $user->isAdmin(),
         ]);
         

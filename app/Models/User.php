@@ -47,15 +47,19 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Kiểm tra xem người dùng có phải là admin hay không
-     *
-     * @return bool
+     * QUAN TRỌNG: Quan hệ role
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Kiểm tra user có phải admin không dựa trên role name (CHUẨN)
      */
     public function isAdmin()
     {
-        // Sử dụng role_id để xác định admin
-        // Xử lý cả string và integer để đảm bảo chính xác
-        return $this->role_id && (int)$this->role_id === 1;
+        return $this->role && $this->role->name === 'admin';
     }
 
     public function twoFactorCode()

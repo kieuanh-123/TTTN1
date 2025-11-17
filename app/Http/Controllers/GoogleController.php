@@ -30,9 +30,9 @@ class GoogleController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // Lấy role_id cho student (role_id = 2)
+            // Lấy role cho student theo name
             $studentRole = \App\Models\Role::where('name', 'user')->first();
-            $roleId = $studentRole ? $studentRole->id : 2;
+            $roleId = $studentRole?->id;
 
             // Tìm user theo email hoặc google_id
             $user = User::where('email', $googleUser->email)
@@ -45,7 +45,7 @@ class GoogleController extends Controller
                     'name' => $googleUser->name,
                     'google_id' => $googleUser->id,
                     'email_verified_at' => $user->email_verified_at ?? now(),
-                    'role_id' => $user->role_id ?? $roleId, // Giữ role_id cũ nếu có, nếu không thì gán student
+                    'role_id' => $user->role_id ?? $roleId, // Giữ role cũ nếu có, nếu không thì gán theo name 'user'
                 ]);
             } else {
                 // Tạo user mới
@@ -54,7 +54,7 @@ class GoogleController extends Controller
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'password' => bcrypt(Str::random(16)), // Tạo mật khẩu ngẫu nhiên
-                    'role_id' => $roleId, // Gán role student
+                    'role_id' => $roleId, // Gán role student theo name
                     'email_verified_at' => now(), // Tự động verify email khi đăng ký qua Google
                 ]);
             }

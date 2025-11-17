@@ -18,9 +18,8 @@ class StudentMiddleware
 
         $user = Auth::user();
 
-        // Chỉ cho phép student (role_id = 2) truy cập
-        // Sử dụng strict comparison để đảm bảo chính xác
-        if (!$user->role_id || (int)$user->role_id !== 2) {
+        // Chỉ cho phép user có role name = 'user' (student) truy cập
+        if (!$user->role || $user->role->name !== 'user') {
             return redirect()->route('home')->with('error', 'Bạn không có quyền truy cập trang này.');
         }
 

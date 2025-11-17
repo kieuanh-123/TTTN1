@@ -25,20 +25,27 @@ Route::get('/news', [NewsController::class, 'index'])->name('news');
 Route::get('/news/{id}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/certificate', [CertificateController::class, 'index'])->name('certificate');
 
-// Route dashboard chung - điều hướng theo role
+// Route dashboard chung - điều hướng theo role (admin / student)
 Route::get('/dashboard', function () {
     $user = Auth::user();
-    
-    // Redirect based on user role
+
+    // Admin
     if ($user->isAdmin()) {
         return redirect()->route('admin.dashboard');
-    } else {
+    }
+
+    // Student / user (role name = 'user')
+    if ($user->role && $user->role->name === 'user') {
         // Student cần verify email trước khi vào dashboard
         if (!$user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
+
         return redirect()->route('student.dashboard');
     }
+
+    // Nếu role khác, đưa về trang chủ
+    return redirect()->route('home');
 })->middleware('auth')->name('dashboard');
 
 Route::middleware( 'auth')->group(function () {

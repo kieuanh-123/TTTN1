@@ -36,9 +36,9 @@ class FacebookController extends Controller
         $email = $fb->getEmail()
             ?? $fb->getId() . '@facebook.local';
 
-        // Lấy role_id cho student (role_id = 2)
+        // Lấy role cho student theo name
         $studentRole = \App\Models\Role::where('name', 'user')->first();
-        $roleId = $studentRole ? $studentRole->id : 2;
+        $roleId = $studentRole?->id;
 
         // Tìm user theo email hoặc facebook_id
         $user = User::where('email', $email)
@@ -51,7 +51,7 @@ class FacebookController extends Controller
                 'name' => $fb->getName(),
                 'facebook_id' => $fb->getId(),
                 'email_verified_at' => $user->email_verified_at ?? now(),
-                'role_id' => $user->role_id ?? $roleId, // Giữ role_id cũ nếu có, nếu không thì gán student
+                'role_id' => $user->role_id ?? $roleId, // Giữ role cũ nếu có, nếu không thì gán theo name 'user'
             ]);
         } else {
             // Tạo user mới
@@ -60,7 +60,7 @@ class FacebookController extends Controller
                 'email' => $email,
                 'facebook_id' => $fb->getId(),
                 'password' => bcrypt(Str::random(16)),
-                'role_id' => $roleId, // Gán role student
+                'role_id' => $roleId, // Gán role student theo name
                 'email_verified_at' => now(), // Tự động verify email khi đăng ký qua Facebook
             ]);
         }
